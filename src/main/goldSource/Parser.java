@@ -1,5 +1,6 @@
 package main.goldSource;
 
+import static spark.Spark.*;
 import com.google.gson.Gson;
 import main.goldSource.directories.Directory;
 import main.goldSource.directories.DirectoryEntry;
@@ -15,7 +16,7 @@ public class Parser {
 
     public Parser(String fileInput) throws IOException {
         System.out.println("Start reading file input: " + fileInput + "...");
-        raf = new RandomAccessFile("src/main/resources/demo/" + fileInput, "r");
+        raf = new RandomAccessFile("upload/" + fileInput, "r");
         System.out.println("Input reading done");
 
         System.out.println("Start reading demo header...");
@@ -54,10 +55,6 @@ public class Parser {
             file.flush();
             file.close();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        new Parser("ksz_brickjumps_g-Lp_0020.23.dem");
     }
 
 }
