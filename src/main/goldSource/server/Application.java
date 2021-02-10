@@ -3,6 +3,7 @@ package main.goldSource.server;
 import main.goldSource.Parser;
 import spark.ModelAndView;
 import spark.Request;
+import spark.Spark;
 
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
@@ -11,6 +12,7 @@ import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,43 +24,58 @@ import static spark.Spark.*;
 
 public class Application {
 
+    private static Parser PARSER;
+
     public static void main(String[] args) throws IOException {
+        exception(Exception.class, (e, req, res) -> e.printStackTrace()); // print all exceptions
         File uploadDir = new File("upload");
         uploadDir.mkdir(); // create the upload directory if it doesn't exist
 
+        staticFiles.location("/style");
+
+        ThymeleafTemplateEngine engine = new ThymeleafTemplateEngine();
+
         get("/", (request, response) -> {
             Map<String, Object> model = new HashMap<>();
-            model.put("message", "Hello Thymeleaf!");
             return new ModelAndView(model, "demo"); // located in resources/templates
-        }, new ThymeleafTemplateEngine());
+        }, engine);
 
-        post("/", (request, response) -> {
+        get("/information", (request, response) -> {
+            Map<String, Object> model = new HashMap<>();
+
+            model.put("type", PARSER.getHeaders().getType());
+            model.put("protocol", PARSER.getHeaders().getProtocol());
+            model.put("network", PARSER.getHeaders().getNetwork());
+            model.put("map", PARSER.getHeaders().getMap());
+            model.put("directory", PARSER.getHeaders().getDirectory());
+            model.put("mapcrc", PARSER.getHeaders().getMapCrc());
+            model.put("offset", PARSER.getHeaders().getOffset());
+
+            return new ModelAndView(model, "information"); // located in resources/templates
+        }, engine);
+
+        post("/upload", (request, response) -> {
             Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
-
-            request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
 
             request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
             try (InputStream is = request.raw().getPart("uploaded_file").getInputStream()) {
                 Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
                 logInfo(request, tempFile);
-                new Parser(tempFile.getFileName().toString());
-
-                byte[] data = Files.readAllBytes(Paths.get("hldemo_output.json"));
+                PARSER = new Parser(tempFile.getFileName().toString());
 
                 HttpServletResponse raw = response.raw();
                 response.header("Content-Disposition", "attachment; filename=hldemo_output.json");
                 response.type("application/force-download");
                 try {
-                    raw.getOutputStream().write(data);
+                    raw.getOutputStream().write(PARSER.getJson().getBytes(StandardCharsets.UTF_8));
                     raw.getOutputStream().flush();
                     raw.getOutputStream().close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 purgeDirectory(new File("upload"));
-
-                return raw;
             }
+            return "File uploaded";
         });
     }
 

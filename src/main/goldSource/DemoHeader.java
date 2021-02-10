@@ -1,12 +1,14 @@
 package main.goldSource;
 
 import lombok.ToString;
+import lombok.Value;
 import main.goldSource.io.Reader;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
 @ToString
+@Value
 public class DemoHeader {
 
     protected String type;

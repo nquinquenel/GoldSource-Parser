@@ -13,6 +13,7 @@ public class Parser {
     protected DemoHeader demoHeader;
     protected Directory directory;
     protected RandomAccessFile raf;
+    protected Gson gson;
 
     public Parser(String fileInput) throws IOException {
         System.out.println("Start reading file input: " + fileInput + "...");
@@ -37,13 +38,15 @@ public class Parser {
         }
         System.out.println("Frames reading done");
 
-        raf.close();
-
-        Gson gson = new Gson().newBuilder()
+        gson = new Gson().newBuilder()
                 .setPrettyPrinting()
                 .disableHtmlEscaping()
                 .create();
 
+        raf.close();
+    }
+
+    public void writeOutputFile() throws IOException {
         System.out.println("Start writing output file...");
         FileWriter file = new FileWriter("hldemo_output.json");
         try {
@@ -55,6 +58,14 @@ public class Parser {
             file.flush();
             file.close();
         }
+    }
+
+    public DemoHeader getHeaders() {
+        return demoHeader;
+    }
+
+    public String getJson() {
+        return gson.toJson(demoHeader) + gson.toJson(directory);
     }
 
 }
