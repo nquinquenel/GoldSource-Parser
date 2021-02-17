@@ -3,7 +3,6 @@ package main.goldSource.server;
 import main.goldSource.Parser;
 import spark.ModelAndView;
 import spark.Request;
-import spark.Spark;
 
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
@@ -15,7 +14,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +29,7 @@ public class Application {
         File uploadDir = new File("upload");
         uploadDir.mkdir(); // create the upload directory if it doesn't exist
 
-        staticFiles.location("/style");
+        staticFiles.location("/");
 
         ThymeleafTemplateEngine engine = new ThymeleafTemplateEngine();
 

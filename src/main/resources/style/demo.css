@@ -8,12 +8,16 @@ body {
     display: flex;
 }
 
-form {
+.divForm {
     margin: auto
 }
 
-button {
-    display: block;
-    margin: auto;
-    margin-top: 15px
+.buttonForm {
+    display: block !important;
+    margin: 10px auto
+}
+
+#infoButton {
+    margin: 10px auto;
+    display: block !important
 }
