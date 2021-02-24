@@ -56,7 +56,7 @@ public class Parser {
 
     public void writeOutputFile() throws IOException {
         System.out.println("Start writing output file...");
-        FileWriter file = new FileWriter("hldemo_output.json");
+        FileWriter file = new FileWriter("json/hldemo_output.json");
         try {
             file.write(gson.toJson(demoHeader) + gson.toJson(directory));
             System.out.println("Writing output file done");

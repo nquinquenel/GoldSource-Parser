@@ -21,7 +21,9 @@ $(document).ready(function() {
 
     $('#formDemo').ajaxForm({
         beforeSend: function() {
+            $("#infoButton").prop('disabled', true);
             progress_bar1.width(0);
+            progress_bar2.width(0);
             parsingDone = false;
             getStatus();
         },
@@ -39,6 +41,9 @@ $(document).ready(function() {
             success: function(data) {
                 if (data >= 100) {
                     parsingDone = true;
+
+                    $("#infoButton").removeAttr('disabled');
+                    $("#infoButton").css("display", "block");
                 }
                 progress_bar2.width(data + "%");
             },

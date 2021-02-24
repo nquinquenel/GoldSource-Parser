@@ -6,12 +6,10 @@ import spark.Request;
 
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -41,9 +39,7 @@ public class Application {
         }, engine);
 
         get("/status", (request, response) -> {
-            if (PARSING_TOTAL > 0) {
-                System.out.println(PARSING_STATUS + " - Total: " + PARSING_TOTAL + " = " + ((double) PARSING_STATUS / PARSING_TOTAL) * 100);
-            }
+            System.out.println("PARSING: " + PARSING_STATUS);
             return PARSING_TOTAL == 0 ? 0 : ((double) PARSING_STATUS / PARSING_TOTAL) * 100;
         });
 
@@ -62,6 +58,10 @@ public class Application {
         }, engine);
 
         post("/upload", (request, response) -> {
+            PARSING_STATUS = 0;
+            PARSING_TOTAL = 0;
+            purgeDirectory(new File("upload"));
+            purgeDirectory(new File("json"));
             Path tempFile = Files.createTempFile(uploadDir.toPath(), "", "");
 
             request.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/temp"));
@@ -69,21 +69,7 @@ public class Application {
                 Files.copy(is, tempFile, StandardCopyOption.REPLACE_EXISTING);
                 logInfo(request, tempFile);
                 PARSER = new Parser(tempFile.getFileName().toString());
-
-                HttpServletResponse raw = response.raw();
-                response.header("Content-Disposition", "attachment; filename=hldemo_output.json");
-                response.type("application/force-download");
-                while (PARSING_STATUS != PARSING_TOTAL) {
-
-                }
-                try {
-                    raw.getOutputStream().write(PARSER.getJson().getBytes(StandardCharsets.UTF_8));
-                    raw.getOutputStream().flush();
-                    raw.getOutputStream().close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                purgeDirectory(new File("upload"));
+                PARSER.writeOutputFile();
             }
             return "File uploaded";
         });
