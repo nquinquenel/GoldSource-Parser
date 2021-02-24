@@ -1,13 +1,17 @@
 package main.goldSource;
 
-import static spark.Spark.*;
 import com.google.gson.Gson;
+import lombok.Data;
 import main.goldSource.directories.Directory;
 import main.goldSource.directories.DirectoryEntry;
 import main.goldSource.directories.DirectoryEntryFrames;
+import main.goldSource.server.Application;
 
-import java.io.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 
+@Data
 public class Parser {
 
     protected DemoHeader demoHeader;
@@ -18,6 +22,7 @@ public class Parser {
     public Parser(String fileInput) throws IOException {
         System.out.println("Start reading file input: " + fileInput + "...");
         raf = new RandomAccessFile("upload/" + fileInput, "r");
+        Application.setParsingTotal(raf.length());
         System.out.println("Input reading done");
 
         System.out.println("Start reading demo header...");
@@ -35,7 +40,10 @@ public class Parser {
             DirectoryEntry dir = directory.entries.get(i);
             raf.seek(dir.offset);
             dir.directoryEntryFrames = new DirectoryEntryFrames(raf);
+
+            System.out.println("Directory " + (i + 1) + " read");
         }
+        Application.setStatus(raf.length());
         System.out.println("Frames reading done");
 
         gson = new Gson().newBuilder()

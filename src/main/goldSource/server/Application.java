@@ -23,6 +23,8 @@ import static spark.Spark.*;
 public class Application {
 
     private static Parser PARSER;
+    private static long PARSING_STATUS = 0;
+    private static long PARSING_TOTAL = 0;
 
     public static void main(String[] args) throws IOException {
         exception(Exception.class, (e, req, res) -> e.printStackTrace()); // print all exceptions
@@ -37,6 +39,13 @@ public class Application {
             Map<String, Object> model = new HashMap<>();
             return new ModelAndView(model, "demo"); // located in resources/templates
         }, engine);
+
+        get("/status", (request, response) -> {
+            if (PARSING_TOTAL > 0) {
+                System.out.println(PARSING_STATUS + " - Total: " + PARSING_TOTAL + " = " + ((double) PARSING_STATUS / PARSING_TOTAL) * 100);
+            }
+            return PARSING_TOTAL == 0 ? 0 : ((double) PARSING_STATUS / PARSING_TOTAL) * 100;
+        });
 
         get("/information", (request, response) -> {
             Map<String, Object> model = new HashMap<>();
@@ -64,6 +73,9 @@ public class Application {
                 HttpServletResponse raw = response.raw();
                 response.header("Content-Disposition", "attachment; filename=hldemo_output.json");
                 response.type("application/force-download");
+                while (PARSING_STATUS != PARSING_TOTAL) {
+
+                }
                 try {
                     raw.getOutputStream().write(PARSER.getJson().getBytes(StandardCharsets.UTF_8));
                     raw.getOutputStream().flush();
@@ -75,6 +87,18 @@ public class Application {
             }
             return "File uploaded";
         });
+    }
+
+    public static void increaseStatus(long value) {
+        PARSING_STATUS += value;
+    }
+
+    public static void setStatus(long value) {
+        PARSING_STATUS = value;
+    }
+
+    public static void setParsingTotal(long value) {
+        PARSING_TOTAL = value;
     }
 
     private static void logInfo(Request req, Path tempFile) throws IOException, ServletException {
@@ -91,7 +115,7 @@ public class Application {
     }
 
     private static void purgeDirectory(File dir) {
-        for (File file: dir.listFiles()) {
+        for (File file : dir.listFiles()) {
             if (file.isDirectory())
                 purgeDirectory(file);
             file.delete();

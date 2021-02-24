@@ -1,4 +1,8 @@
 $(document).ready(function() {
+    var progress_bar1 = $("#progress1");
+    var progress_bar2 = $("#progress2");
+    var parsingDone = true;
+
     $("#infoButton").prop('disabled', true);
 
     $("#formDemo").on('submit', function(event) {
@@ -6,7 +10,6 @@ $(document).ready(function() {
         $("#submitDemo").html(
             `Try an other demo`
         );
-        $("#infoButton").removeAttr('disabled');
     });
 
     $("#inputDemo").on('change', function() {
@@ -15,4 +18,36 @@ $(document).ready(function() {
             `Upload demo`
         );
     });
+
+    $('#formDemo').ajaxForm({
+        beforeSend: function() {
+            progress_bar1.width(0);
+            parsingDone = false;
+            getStatus();
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+            progress_bar1.width(percentComplete + "%");
+        },
+        complete: function(xhr) {
+            progress_bar1.width(100 + "%");
+        }
+    });
+
+    function getStatus() {
+        $.ajax({
+            url: '/status',
+            success: function(data) {
+                if (data >= 100) {
+                    parsingDone = true;
+                }
+                progress_bar2.width(data + "%");
+            },
+            complete: function() {
+                if (!parsingDone) {
+                    setTimeout(getStatus, 1000);
+                }
+            }
+        });
+    };
+
 });

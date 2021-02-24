@@ -19,6 +19,7 @@ public class Directory {
         entries = new ArrayList<>();
 
         for (int i = 0; i < count; i++) {
+            System.out.println(i + "/" + count);
             entries.add(new DirectoryEntry(raf));
         }
     }
